@@ -8,8 +8,9 @@ if [ -z "$RAPI_IP" ]; then
   exit 1
 fi
 
+# Zeitstempel einmalig setzen
 TIMESTAMP="$(date +%Y-%m-%d-%H-%M-%S)"
-BACKUP_DIR="$HOME/Backup"
+BACKUP_DIR="./"
 
 STATUSFILE="$BACKUP_DIR/backuperstellen-status-$RAPI_IP-$TIMESTAMP.txt"
 LOGFILE="$BACKUP_DIR/backup.log-$RAPI_IP-$TIMESTAMP"
