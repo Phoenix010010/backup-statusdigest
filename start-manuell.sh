@@ -9,29 +9,15 @@ read -p "Bitte Auswahl eingeben [1-2]: " auswahl
 
 case "$auswahl" in
   1)
-    read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " rapi
+    read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " $RAPI_IP
     
-    # Zielverzeichnis
-    LOGDIR="./log"
-    if [ -d "$LOGDIR" ]; then
-      echo "✅ Verzeichnis $LOGDIR existiert bereits."
-    else
-      echo "📁 Verzeichnis $LOGDIR fehlt. Versuche es anzulegen..."
-      mkdir -p "$LOGDIR"
-      
-      # Schritt 2: Nach mkdir erneut prüfen
-      if [ -d "$LOGDIR" ]; then
-        echo "✅ Verzeichnis $LOGDIR erfolgreich angelegt."        
-      else
-        echo "❌ Fehler: Konnte Verzeichnis $LOGDIR nicht anlegen. Breche ab."
-        exit 0
-      fi
-    fi
+    # Arbeitsverzeichnisse anlegen
+    ./init.sh "$RAPI_IP   
     
     LOGFILE="$LOGDIR/backup.log.$(date +%Y-%m-%d)"
     
-    echo "Starte Backup von $rapi..."
-    ./backuperstellen.sh "$rapi" | tee -a "$LOGFILE"
+    echo "Starte Backup von $RAPI_IP..."
+    ./backuperstellen.sh "$RAPI_IP" | tee -a "$LOGFILE"
     ;;
   2)
     echo "Abbruch durch Benutzer."
