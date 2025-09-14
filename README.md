@@ -10,3 +10,5 @@ Komplett über KI(Copilot von MS) generiert
 - `send-digest.sh` – versendet HTML-Mail
 - `statusdigest.html` – HTML-Vorlage
 - `statusdigest.css` – Stylesheet für Digest
+- `backup-rapi.sh` – erstellt das Backup auf dem Pi
+- `init.sh` – wird benutzt um benötigte Unterverzeichnisse zu erstellen
