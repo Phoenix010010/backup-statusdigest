@@ -9,7 +9,7 @@ read -p "Bitte Auswahl eingeben [1-2]: " auswahl
 
 case "$auswahl" in
   1)
-    read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " $RAPI_IP
+    read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " RAPI_IP
     
     # Arbeitsverzeichnisse anlegen
     ./init.sh "$RAPI_IP   
