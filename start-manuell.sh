@@ -12,7 +12,7 @@ case "$auswahl" in
     read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " rapi
     
     # Zielverzeichnis
-    LOGDIR="/backup.log"
+    LOGDIR="./log"
     if [ -d "$LOGDIR" ]; then
       echo "✅ Verzeichnis $LOGDIR existiert bereits."
     else
@@ -21,16 +21,17 @@ case "$auswahl" in
       
       # Schritt 2: Nach mkdir erneut prüfen
       if [ -d "$LOGDIR" ]; then
-        echo "✅ Verzeichnis $LOGDIR erfolgreich angelegt."
-        LOGFILE="$LOGDIR/backup.log.$(date +%Y-%m-%d)"
+        echo "✅ Verzeichnis $LOGDIR erfolgreich angelegt."        
       else
         echo "❌ Fehler: Konnte Verzeichnis $LOGDIR nicht anlegen. Breche ab."
         exit 0
       fi
     fi
-
+    
+    LOGFILE="$LOGDIR/backup.log.$(date +%Y-%m-%d)"
+    
     echo "Starte Backup von $rapi..."
-    "./backuperstellen.sh" -a "$rapi" | tee -a "$LOGFILE"
+    ./backuperstellen.sh "$rapi" | tee -a "$LOGFILE"
     ;;
   2)
     echo "Abbruch durch Benutzer."
@@ -45,7 +46,7 @@ esac
 # Status Digest E-Mail
 echo "Die Status Digest E-Mail wird erstellt und der Versand wird vorbereitet..."
 STEP_START=$(date +%s)
-"/statusdigest/statusdigest.sh"
+./statusdigest.sh
 STEP_END=$(date +%s)
 echo "⏱️ Dauer Mailversand: $((STEP_END - STEP_START))s" >> "$LOGFILE"
 
