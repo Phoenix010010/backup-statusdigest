@@ -1,5 +1,6 @@
 # backup-statusdigest
 Backup- und Status-Digest-System für Raspberry Pi mit HTML-Mailversand
+
 Komplett über KI(Copilot von MS) erzeugt
 
 ## Projektstruktur
