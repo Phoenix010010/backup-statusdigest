@@ -10,9 +10,14 @@ read -p "Bitte Auswahl eingeben [1-2]: " auswahl
 case "$auswahl" in
   1)
     read -p "Bitte IP-Nr. eingeben (z. B. 192.168.178.32): " RAPI_IP
-    
+    if [[ ! "$RAPI_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+      echo "❌ Ungültige IP-Adresse: $RAPI_IP"
+      exit 1
+    fi
+    echo "$RAPI_IP" > ./last-ip.txt
+
     # Arbeitsverzeichnisse anlegen
-    ./init.sh "$RAPI_IP   
+    ./init.sh "$RAPI_IP"   
     
     LOGFILE="$LOGDIR/backup.log.$(date +%Y-%m-%d)"
     
