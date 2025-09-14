@@ -6,7 +6,7 @@ BACKUP_DIR="$HOME/Backup"
 LOGFILE="$BACKUP_DIR/backup.log.$(date +%Y-%m-%d)"
 
 echo "Was soll gesichert werden?"
-echo "1) Nur ein Raspberry Pi sichern"
+echo "1) Nur ein Raspberry Pi im lokalen Netzwerk sichern"
 echo "2) Abbrechen"
 read -p "Bitte Auswahl eingeben [1-2]: " auswahl
 
