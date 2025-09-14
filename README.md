@@ -1,7 +1,7 @@
 # backup-statusdigest
 Backup- und Status-Digest-System für Raspberry Pi mit HTML-Mailversand
 
-Komplett über KI(Copilot von MS) erzeugt
+Komplett über KI(Copilot von MS) generiert
 
 ## Projektstruktur
 - `start-manuell.sh` – Einstiegspunkt für den Backup-Prozess
