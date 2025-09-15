@@ -8,10 +8,8 @@ RAPI_IP="$(cat "$BASE_DIR/last-ip.txt")"
 
 # Verzeichnisse
 LOG_DIR="$BASE_DIR/log"
-STATUS_DIR="$BASE_DIR/status"
-BACKUP_DIR="$BASE_DIR/backuperstellen"
 USER_DIR="$BASE_DIR/restic-repo"
-STATUSFILE="$STATUS_DIR/backup-$RAPI_IP-status.txt"
+STATUSFILE="$LOG_DIR/backup-$RAPI_IP-status.txt"
 LOGFILE="$LOG_DIR/backup-$RAPI_IP.log"
 
 # Startzeit
@@ -111,7 +109,7 @@ else
   echo "💾 Zielsystem hat ${target_space} GB freien Speicher."
 fi
 
-echo "📀 Starte Backup lokal " >> "$logfile"
+echo "📀 Starte Backup " >> "$logfile"
 
 restic --no-cache --limit-upload 4194304 --verbose=2 -r "$USER_DIR" backup / \
   --exclude /proc \
