@@ -18,13 +18,15 @@ LOGFILE="$LOG_DIR/backup-$RAPI_IP.log"
 echo "🟢 Backupstart $RAPI_IP: $(date)" > "$LOGFILE"
 START_TIME=$(date +%s)
 
-# Docker stoppen
-echo "🚦 Docker stoppen..." >> "$LOGFILE"
-docker compose -f "$BASE_DIR/paperless/docker-compose.yml" down || echo "⚠️ Docker konnte nicht gestoppt werden" >> "$LOGFILE"
-sync
-sleep 1
-sudo pkill -f restic || true
-sleep 5
+# 🔍 Laufende Container sichern
+RUNNING_CONTAINERS=($(docker ps -q))
+
+if [ ${#RUNNING_CONTAINERS[@]} -gt 0 ]; then
+  echo "🚦 Stoppe laufende Container..." >> "$logfile"
+  docker stop "${RUNNING_CONTAINERS[@]}" >> "$logfile"
+else
+  echo "ℹ️ Keine laufenden Container gefunden – Backup läuft ohne Docker-Stopp." >> "$logfile"
+fi
 
 # Restic vorbereiten
 export RESTIC_PASSWORD_FILE="$BASE_DIR/.restic-passwort"
@@ -45,10 +47,15 @@ echo "✅ restic Backup abgeschlossen" >> "$LOGFILE"
 restic -r "$REPO_PATH" forget --keep-within 7d --prune || echo "⚠️ Snapshot-Bereinigung fehlgeschlagen" >> "$LOGFILE"
 echo "🧹 Alte Snapshots bereinigt" >> "$LOGFILE"
 
-# Docker neu starten
-echo "🐳 Docker-Container neu starten..." >> "$LOGFILE"
-docker compose -f "$BASE_DIR/paperless/docker-compose.yml" up -d || echo "⚠️ Docker konnte nicht neu gestartet werden" >> "$LOGFILE"
-echo "✅ Docker wieder aktiv" >> "$LOGFILE"
+# 🐳 Container nach Backup wieder starten
+if [ ${#RUNNING_CONTAINERS[@]} -gt 0 ]; then
+  echo "🔄 Starte zuvor gestoppte Container..." >> "$logfile"
+  docker start "${RUNNING_CONTAINERS[@]}" >> "$logfile"
+  echo "✅ Container erfolgreich neu gestartet." >> "$logfile"
+else
+  echo "ℹ️ Keine Container zum Neustart vorhanden." >> "$logfile"
+fi
+
 
 # Speicherinfos
 USED_SPACE=$(du -sh "$REPO_PATH" 2>/dev/null | awk '{print $1}')
