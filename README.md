@@ -12,3 +12,6 @@ Komplett über KI(Copilot von MS) generiert
 - `statusdigest.css` – Stylesheet für Digest
 - `backup-rapi.sh` – erstellt das Backup auf dem Pi
 - `init.sh` – wird benutzt um benötigte Unterverzeichnisse zu erstellen
+
+## Besonderheiten
+lfd. Docker Container werden gestoppt und wieder gestartet
