@@ -1,0 +1,1 @@
+echo "Hier wird in kürze die html Email erstellt!"
