@@ -28,45 +28,36 @@ else
   echo "ℹ️ Keine laufenden Container gefunden – Backup läuft ohne Docker-Stopp." >> "$logfile"
 fi
 
-# Restic vorbereiten
-echo "📁 Wohin soll das Backup gespeichert werden?"
-echo "1) Standardverzeichnis: $BASE_DIR/backuperstellen/restic-repo"
-echo "2) Eigenes Verzeichnis angeben"
-read -p "Bitte Auswahl eingeben [1-2]: " zielwahl
+while true; do
+  echo "📁 Wohin soll das Backup gespeichert werden?"
+  echo "1) Standardverzeichnis: $BASE_DIR/restic-repo"
+  echo "2) Eigenes Verzeichnis angeben"
+  read -p "Bitte Auswahl eingeben [1-2]: " zielwahl
 
-case "$zielwahl" in
-  1)
-    repo_path="$BASE_DIR/backuperstellen/restic-repo"
-    ;;
-  2)
-    read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
-    repo_path="$benutzer_pfad"
-    ;;
-  *)
-    echo "❌ Ungültige Eingabe – Abbruch."
-    exit 1
-    ;;
-esac
+  case "$zielwahl" in
+    1)
+      repo_path="$BASE_DIR/restic-repo"
+      ;;
+    2)
+      read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
+      repo_path="$benutzer_pfad"
+      ;;
+    *)
+      echo "❌ Ungültige Eingabe – Abbruch."
+      exit 1
+      ;;
+  esac
 
-echo "📁 Wohin soll das Backup gespeichert werden?"
-echo "1) Standardverzeichnis: $BASE_DIR/backuperstellen/restic-repo"
-echo "2) Eigenes Verzeichnis angeben"
-read -p "Bitte Auswahl eingeben [1-2]: " zielwahl
+  if [ -d "$repo_path" ]; then
+    echo "✅ Backup-Ziel $repo_path ist vorhanden."
+    break
+  else
+    echo "❌ Verzeichnis $repo_path existiert nicht oder ist nicht erreichbar."
+    echo "🔁 Bitte Pfad prüfen oder erneut auswählen."
+  fi
+done
 
-case "$zielwahl" in
-  1)
-    repo_path="$BASE_DIR/restic-repo"
-    ;;
-  2)
-    read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
-    repo_path="$benutzer_pfad"
-    ;;
-  *)
-    echo "❌ Ungültige Eingabe – Abbruch."
-    exit 1
-    ;;
-esac
-
+echo " "
 echo "Bitte Passwort eingeben! (Sonderzeichen auch möglich!)"
 echo "Sollte das PW mit einem gespeicherten Backup übereinstimmen, so werden nur die geänderten Dateien gespeichert!"
 echo "Achtung! Falls es ein neues Passwort ist, wird ein neues Backup erstellt! Dauert je nach Größe!"
@@ -76,22 +67,72 @@ echo "🔐 Bitte Passwort für das neue/gespeicherte Backup eingeben:"
 read -s RESTIC_PASSWORD
 export RESTIC_PASSWORD
 
+# Prüfen, ob das Repository existiert
+if [ ! -d "$repo_path" ] || [ ! -f "$repo_path/config" ]; then
+  INIT_REPO=true
+else
+  INIT_REPO=false
+fi
 
+# Speicherplatz ermitteln
+source_space=$(df -BG / | awk 'NR==2 {print $3}' | sed 's/G//')
+target_space=$(df -BG "$repo_path" | awk 'NR==2 {print $4}' | sed 's/G//')
 
-# Backup starten
-echo "📀 Starte restic-Backup lokal..." >> "$LOGFILE"
-restic --no-cache --limit-upload 4194304 -r "$REPO_PATH" backup / \
-  --exclude /proc --exclude /sys --exclude /dev \
-  --exclude /run --exclude /tmp --exclude /mnt --exclude /media \
-  --exclude /var/tmp --exclude /var/cache \
+if [ "$INIT_REPO" = true ]; then
+  echo "⚠️ Neues Backup wird erstellt."
+  echo "📦 Dein System belegt aktuell ca. ${source_space} GB."
+  echo "💾 Zielsystem hat ${target_space} GB freien Speicher."
+  if [ "$target_space" -lt "$source_space" ]; then
+    echo "❌ Nicht genug Speicherplatz verfügbar: mindestens ${source_space} GB benötigt."
+    echo "❓ Backup abbrechen (j/n)?"
+    read -r abbrechen
+    if [ "$abbrechen" = "j" ]; then
+      echo "🚫 Backup abgebrochen."
+      exit 1
+    fi
+  fi
+  restic -r "$repo_path" init || { echo "❌ Fehler beim Initialisieren des Repositories."; exit 1; }
+else
+  # Passwortprüfung für bestehendes Repository
+  restic -r "$repo_path" snapshots > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "❌ Passwort falsch oder Repository beschädigt."
+    echo "❓ Nochmal versuchen (j/n)?"
+    read -r retry
+    if [ "$retry" = "j" ]; then
+      exit 1
+    else
+      echo "🚫 Backup abgebrochen."
+      exit 1
+    fi
+  fi
+  echo "📦 Delta-Backup wird ausgeführt."
+  echo "📊 Dein System belegt aktuell ca. ${source_space} GB."
+  echo "💾 Zielsystem hat ${target_space} GB freien Speicher."
+fi
+
+echo "📀 Starte Backup lokal " >> "$logfile"
+
+restic --no-cache --limit-upload 4194304 --verbose=2 -r "$repo_path" backup / \
+  --exclude /proc \
+  --exclude /sys \
+  --exclude /dev \
+  --exclude /run \
+  --exclude /tmp \
+  --exclude /mnt \
+  --exclude /media \
+  --exclude /var/tmp \
+  --exclude /var/cache \
   --exclude "$BASE_DIR/.cache" \
-  --exclude "$REPO_PATH" \
-  --exclude /swapfile || echo "❌ restic Backup fehlgeschlagen" >> "$LOGFILE"
-echo "✅ restic Backup abgeschlossen" >> "$LOGFILE"
+  --exclude "$repo_path" \
+  --exclude /swapfile \
+  | tee -a "$logfile"
 
-# Snapshots bereinigen
-restic -r "$REPO_PATH" forget --keep-within 7d --prune || echo "⚠️ Snapshot-Bereinigung fehlgeschlagen" >> "$LOGFILE"
-echo "🧹 Alte Snapshots bereinigt" >> "$LOGFILE"
+if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+  echo "❌ restic Backup fehlgeschlagen" >> "$logfile"
+else
+  echo "✅ restic Backup abgeschlossen" >> "$logfile"
+fi
 
 # 🐳 Container nach Backup wieder starten
 if [ ${#RUNNING_CONTAINERS[@]} -gt 0 ]; then
@@ -102,9 +143,8 @@ else
   echo "ℹ️ Keine Container zum Neustart vorhanden." >> "$logfile"
 fi
 
-
 # Speicherinfos
-USED_SPACE=$(du -sh "$REPO_PATH" 2>/dev/null | awk '{print $1}')
+USED_SPACE=$(du -sh "$repo_path" 2>/dev/null | awk '{print $1}')
 AVAILABLE_SPACE=$(df -h "$REPO_PATH" 2>/dev/null | awk 'NR==2 {print $4}')
 SNAP_ID=$(restic -r "$REPO_PATH" snapshots --last --json 2>/dev/null | jq -r '.[0].short_id')
 END_TIME=$(date +%s)
