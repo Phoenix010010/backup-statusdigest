@@ -9,6 +9,7 @@ LOG_DIR="$BASE_DIR/log"
 BACKUP_DIR="$BASE_DIR/backuperstellen"
 STATUS_DIR="$BASE_DIR/status"
 LATEST_FILE="$BASE_DIR/latest"
+ARCHIV_DIR="$BASE_DIR/restic-repo"
 
 # 🔧 Funktion zur Verzeichnisprüfung und Erstellung
 create_dir() {
@@ -36,3 +37,4 @@ create_dir "$LOG_DIR"
 create_dir "$BACKUP_DIR"
 create_dir "$STATUS_DIR"
 create_dir "$LATEST_FILE"
+create_dir "$ARCHIV_DIR"
