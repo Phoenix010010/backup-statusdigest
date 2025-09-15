@@ -15,3 +15,6 @@ Komplett über KI(Copilot von MS) generiert
 
 ## Besonderheiten
 lfd. Docker Container werden gestoppt und wieder gestartet
+Folgende Ordner erhalten kein Backup: 
+/proc /swapfile /sys /dev /run /tmp /mnt /media /var/tmp /var/cache /.cache /"Eigener_Pfad" 
+Für später ist noch eine explizite Ordnerauswahl geplant!
