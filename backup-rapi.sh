@@ -10,7 +10,7 @@ RAPI_IP="$(cat "$BASE_DIR/last-ip.txt")"
 LOG_DIR="$BASE_DIR/log"
 STATUS_DIR="$BASE_DIR/status"
 BACKUP_DIR="$BASE_DIR/backuperstellen"
-REPO_PATH="$BASE_DIR/restic-repo"
+USER_DIR="$BASE_DIR/restic-repo"
 STATUSFILE="$STATUS_DIR/backup-$RAPI_IP-status.txt"
 LOGFILE="$LOG_DIR/backup-$RAPI_IP.log"
 
@@ -36,11 +36,11 @@ while true; do
 
   case "$zielwahl" in
     1)
-      repo_path="$BASE_DIR/restic-repo"
+      USER_DIR="$BASE_DIR/restic-repo"
       ;;
     2)
       read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
-      repo_path="$benutzer_pfad"
+      USER_DIR="$benutzer_pfad"
       ;;
     *)
       echo "❌ Ungültige Eingabe – Abbruch."
@@ -48,11 +48,11 @@ while true; do
       ;;
   esac
 
-  if [ -d "$repo_path" ]; then
-    echo "✅ Backup-Ziel $repo_path ist vorhanden."
+  if [ -d "$USER_DIR" ]; then
+    echo "✅ Backup-Ziel $USER_DIR ist vorhanden."
     break
   else
-    echo "❌ Verzeichnis $repo_path existiert nicht oder ist nicht erreichbar."
+    echo "❌ Verzeichnis $USER_DIR existiert nicht oder ist nicht erreichbar."
     echo "🔁 Bitte Pfad prüfen oder erneut auswählen."
   fi
 done
@@ -68,7 +68,7 @@ read -s RESTIC_PASSWORD
 export RESTIC_PASSWORD
 
 # Prüfen, ob das Repository existiert
-if [ ! -d "$repo_path" ] || [ ! -f "$repo_path/config" ]; then
+if [ ! -d "$USER_DIR" ] || [ ! -f "$USER_DIR/config" ]; then
   INIT_REPO=true
 else
   INIT_REPO=false
@@ -76,7 +76,7 @@ fi
 
 # Speicherplatz ermitteln
 source_space=$(df -BG / | awk 'NR==2 {print $3}' | sed 's/G//')
-target_space=$(df -BG "$repo_path" | awk 'NR==2 {print $4}' | sed 's/G//')
+target_space=$(df -BG "$USER_DIR" | awk 'NR==2 {print $4}' | sed 's/G//')
 
 if [ "$INIT_REPO" = true ]; then
   echo "⚠️ Neues Backup wird erstellt."
@@ -91,10 +91,10 @@ if [ "$INIT_REPO" = true ]; then
       exit 1
     fi
   fi
-  restic -r "$repo_path" init || { echo "❌ Fehler beim Initialisieren des Repositories."; exit 1; }
+  restic -r "$USER_DIR" init || { echo "❌ Fehler beim Initialisieren des Repositories."; exit 1; }
 else
   # Passwortprüfung für bestehendes Repository
-  restic -r "$repo_path" snapshots > /dev/null 2>&1
+  restic -r "$USER_DIR" snapshots > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo "❌ Passwort falsch oder Repository beschädigt."
     echo "❓ Nochmal versuchen (j/n)?"
@@ -113,7 +113,7 @@ fi
 
 echo "📀 Starte Backup lokal " >> "$logfile"
 
-restic --no-cache --limit-upload 4194304 --verbose=2 -r "$repo_path" backup / \
+restic --no-cache --limit-upload 4194304 --verbose=2 -r "$USER_DIR" backup / \
   --exclude /proc \
   --exclude /sys \
   --exclude /dev \
@@ -124,7 +124,7 @@ restic --no-cache --limit-upload 4194304 --verbose=2 -r "$repo_path" backup / \
   --exclude /var/tmp \
   --exclude /var/cache \
   --exclude "$BASE_DIR/.cache" \
-  --exclude "$repo_path" \
+  --exclude "$USER_DIR" \
   --exclude /swapfile \
   | tee -a "$logfile"
 
@@ -144,9 +144,9 @@ else
 fi
 
 # Speicherinfos
-USED_SPACE=$(du -sh "$repo_path" 2>/dev/null | awk '{print $1}')
-AVAILABLE_SPACE=$(df -h "$REPO_PATH" 2>/dev/null | awk 'NR==2 {print $4}')
-SNAP_ID=$(restic -r "$REPO_PATH" snapshots --last --json 2>/dev/null | jq -r '.[0].short_id')
+USED_SPACE=$(du -sh "$USER_DIR" 2>/dev/null | awk '{print $1}')
+AVAILABLE_SPACE=$(df -h "$USER_DIR" 2>/dev/null | awk 'NR==2 {print $4}')
+SNAP_ID=$(restic -r "$USER_DIR" snapshots --last --json 2>/dev/null | jq -r '.[0].short_id')
 END_TIME=$(date +%s)
 DELTA_TIME=$((END_TIME - START_TIME))
 
