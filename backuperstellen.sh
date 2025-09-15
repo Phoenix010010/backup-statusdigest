@@ -11,9 +11,10 @@ fi
 # Zeitstempel einmalig setzen
 TIMESTAMP="$(date +%Y-%m-%d-%H-%M-%S)"
 BACKUP_DIR="./"
+LOG_DIR="/log"
 
-STATUSFILE="$BACKUP_DIR/backuperstellen-status-$RAPI_IP-$TIMESTAMP.txt"
-LOGFILE="$BACKUP_DIR/backup.log-$RAPI_IP-$TIMESTAMP"
+STATUSFILE="$LOG_DIR_/backuperstellen-status-$RAPI_IP-$TIMESTAMP.txt"
+LOGFILE="$LOG_DIR/backup.log-$RAPI_IP-$TIMESTAMP"
 
 log() {
   echo "$1" | tee -a "$STATUSFILE"
@@ -32,7 +33,7 @@ echo "⏱️ Dauer Lokales Backup: $((STEP_END - STEP_START))s" >> "$STATUSFILE"
 # Digest-Mail
 log "✉️ Digest-E-Mail wird erstellt"
 STEP_START=$(date +%s)
-$home/statusdigest/statusdigest.sh
+$BACKUP_DIR/statusdigest.sh
 STEP_END=$(date +%s)
 echo "⏱️ Dauer Mailversand: $((STEP_END - STEP_START))s" >> "$STATUSFILE"
 
@@ -42,6 +43,6 @@ log "✅ Backup abgeschlossen um $(date +%Y-%m-%d-%H-%M-%S)"
 log "🕒 Gesamtzeit: $((END_TIME - START_TIME))s"
 
 # Dateiname in latest.txt speichern
-echo "$STATUSFILE" >> "$BACKUP_DIR/latest.txt"
+echo "$STATUSFILE" >> "$LOG_DIR/latest.txt"
 
 exit 0
