@@ -29,8 +29,54 @@ else
 fi
 
 # Restic vorbereiten
-export RESTIC_PASSWORD_FILE="$BASE_DIR/.restic-passwort"
-mkdir -p "$REPO_PATH"
+echo "📁 Wohin soll das Backup gespeichert werden?"
+echo "1) Standardverzeichnis: $BASE_DIR/backuperstellen/restic-repo"
+echo "2) Eigenes Verzeichnis angeben"
+read -p "Bitte Auswahl eingeben [1-2]: " zielwahl
+
+case "$zielwahl" in
+  1)
+    repo_path="$BASE_DIR/backuperstellen/restic-repo"
+    ;;
+  2)
+    read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
+    repo_path="$benutzer_pfad"
+    ;;
+  *)
+    echo "❌ Ungültige Eingabe – Abbruch."
+    exit 1
+    ;;
+esac
+
+echo "📁 Wohin soll das Backup gespeichert werden?"
+echo "1) Standardverzeichnis: $BASE_DIR/backuperstellen/restic-repo"
+echo "2) Eigenes Verzeichnis angeben"
+read -p "Bitte Auswahl eingeben [1-2]: " zielwahl
+
+case "$zielwahl" in
+  1)
+    repo_path="$BASE_DIR/restic-repo"
+    ;;
+  2)
+    read -p "Pfad zum Backup-Ziel eingeben: " benutzer_pfad
+    repo_path="$benutzer_pfad"
+    ;;
+  *)
+    echo "❌ Ungültige Eingabe – Abbruch."
+    exit 1
+    ;;
+esac
+
+echo "Bitte Passwort eingeben! (Sonderzeichen auch möglich!)"
+echo "Sollte das PW mit einem gespeicherten Backup übereinstimmen, so werden nur die geänderten Dateien gespeichert!"
+echo "Achtung! Falls es ein neues Passwort ist, wird ein neues Backup erstellt! Dauert je nach Größe!"
+echo "🔐 Hinweis:"
+echo "Achte darauf, dass du es dir SICHER merkst – es kann NICHT wiederhergestellt werden!"
+echo "🔐 Bitte Passwort für das neue/gespeicherte Backup eingeben:"
+read -s RESTIC_PASSWORD
+export RESTIC_PASSWORD
+
+
 
 # Backup starten
 echo "📀 Starte restic-Backup lokal..." >> "$LOGFILE"
