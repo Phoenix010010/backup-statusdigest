@@ -17,11 +17,13 @@ echo "🟢 Backupstart $RAPI_IP: $(date)" > "$LOGFILE"
 START_TIME=$(date +%s)
 
 # 🔍 Laufende Container sichern
-RUNNING_CONTAINERS=($(docker ps -q))
+RUNNING_CONTAINERS=$(docker ps -q)
 
-if [ ${#RUNNING_CONTAINERS[@]} -gt 0 ]; then
+if [ -n "$RUNNING_CONTAINERS" ]; then
   echo "🚦 Stoppe laufende Container..." >> "$logfile"
-  docker stop "${RUNNING_CONTAINERS[@]}" >> "$logfile"
+  for CONTAINER in $RUNNING_CONTAINERS; do
+    docker stop "$CONTAINER" >> "$logfile"
+  done
 else
   echo "ℹ️ Keine laufenden Container gefunden – Backup läuft ohne Docker-Stopp." >> "$logfile"
 fi
