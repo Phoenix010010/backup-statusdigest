@@ -10,8 +10,8 @@ fi
 
 # Zeitstempel einmalig setzen
 TIMESTAMP="$(date +%Y-%m-%d-%H-%M-%S)"
-BACKUP_DIR="./"
-LOG_DIR="/log"
+BASE_DIR="$(pwd)"
+LOG_DIR="$BASE_DIR/log"
 
 STATUSFILE="$LOG_DIR_/backuperstellen-status-$RAPI_IP-$TIMESTAMP.txt"
 LOGFILE="$LOG_DIR/backup.log-$RAPI_IP-$TIMESTAMP"
