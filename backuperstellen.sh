@@ -26,14 +26,14 @@ START_TIME=$(date +%s)
 # Lokales Backup
 log "📁 Starte lokales Backup von $RAPI_IP"
 STEP_START=$(date +%s)
-"$BACKUP_DIR/backup-rapi.sh" "$RAPI_IP"
+"$BASE_DIR/backup-rapi.sh" "$RAPI_IP"
 STEP_END=$(date +%s)
 echo "⏱️ Dauer Lokales Backup: $((STEP_END - STEP_START))s" >> "$STATUSFILE"
 
 # Digest-Mail
 log "✉️ Digest-E-Mail wird erstellt"
 STEP_START=$(date +%s)
-$BACKUP_DIR/statusdigest.sh
+$BASE_DIR/statusdigest.sh
 STEP_END=$(date +%s)
 echo "⏱️ Dauer Mailversand: $((STEP_END - STEP_START))s" >> "$STATUSFILE"
 
