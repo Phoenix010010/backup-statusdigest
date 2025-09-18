@@ -1,8 +1,8 @@
 # 📦 Backup Status Digest – Raspberry Pi & Fritzbox
-
+ 
 Dieses Projekt bietet ein modulares Backup-System für Raspberry Pi-Geräte und eine Fritzbox-NAS. Es kombiniert Bash-, Batch-, VBS- und PowerShell-Skripte, um Backups lokal und remote durchzuführen – mit Fokus auf Automatisierung, Formatkompatibilität und Benutzerfreundlichkeit.
 
----
+--------------------------------------------------------
 
 ## 🛠️ Voraussetzungen
 
